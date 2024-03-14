@@ -92,58 +92,50 @@ void print_maze() {
 bool walk(pos_t pos) {
 	
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
-	bool posicoes_validas;
-	do {
+	int i = pos.i, j = pos.j;
+	// Marcar a posição atual com o símbolo '.'
+	maze[i][j] = 'o';
+	
+	// Limpa a tela
+	system("clear");
 
-		int i = pos.i, j = pos.j;
-		// Marcar a posição atual com o símbolo '.'
-		maze[i][j] = 'o';
-		
-		// Limpa a tela
-		system("clear");
+	// Imprime o labirinto
+	print_maze();
+	
+	/* Dado a posição atual, verifica quais sao as próximas posições válidas
+		Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
+		e se são posições ainda não visitadas (ou seja, caracter 'x') e inserir
+		cada uma delas no vetor valid_positions
+			- pos.i, pos.j+1
+			- pos.i, pos.j-1
+			- pos.i+1, pos.j
+			- pos.i-1, pos.j
+		Caso alguma das posiçÕes validas seja igual a 's', retornar verdadeiro
+	*/
 
-		// Imprime o labirinto
-		print_maze();
-		
-		/* Dado a posição atual, verifica quais sao as próximas posições válidas
-			Checar se as posições abaixo são validas (i>0, i<num_rows, j>0, j <num_cols)
-		 	e se são posições ainda não visitadas (ou seja, caracter 'x') e inserir
-		 	cada uma delas no vetor valid_positions
-		 		- pos.i, pos.j+1
-		 		- pos.i, pos.j-1
-		 		- pos.i+1, pos.j
-		 		- pos.i-1, pos.j
-		 	Caso alguma das posiçÕes validas seja igual a 's', retornar verdadeiro
-	 	*/
+	pos_t pos_to_verify[] = {pos_t(i, j+1), pos_t(i,j-1), pos_t(i+1,j), pos_t(i-1,j)};
+	for (int index = 0; index < sizeof(pos_to_verify)/sizeof(*pos_to_verify); index ++) {
 
-	 	pos_t pos_to_verify[] = {pos_t(i, j+1), pos_t(i,j-1), pos_t(i+1,j), pos_t(i-1,j)};
-		for (int index = 0; index < sizeof(pos_to_verify)/sizeof(*pos_to_verify); index ++) {
+		if(!(pos_to_verify[index].i >= 0 and pos_to_verify[index].i < num_rows and
+			pos_to_verify[index].j >= 0 and pos_to_verify[index].j < num_cols))
+			continue;
 
-			if(!(pos_to_verify[index].i >= 0 and pos_to_verify[index].i < num_rows and
-				pos_to_verify[index].j >= 0 and pos_to_verify[index].j < num_cols))
-				continue;
+		char c_to_verify = maze[pos_to_verify[index].i][pos_to_verify[index].j];
 
-			char c_to_verify = maze[pos_to_verify[index].i][pos_to_verify[index].j];
+		if(c_to_verify == 's')
+			return true;
+		else if(c_to_verify == 'x')
+			valid_positions.push(pos_to_verify[index]);
+	}
 
-			if(c_to_verify == 's')
-				return true;
-			else if(c_to_verify == 'x')
-				valid_positions.push(pos_to_verify[index]);
-		}
+	maze[i][j] = '.';
 
-		maze[i][j] = '.';
-
-			
-
-		posicoes_validas = !valid_positions.empty();
-
-		if(posicoes_validas) {
-		pos = valid_positions.top();
-		valid_positions.pop();
-		}
-
-	} while(posicoes_validas);
-	return false;
+	if(valid_positions.empty())
+		return false;
+	
+	pos = valid_positions.top();
+	valid_positions.pop();
+	return walk(pos);
 }
 
 int main(int argc, char* argv[]) {
