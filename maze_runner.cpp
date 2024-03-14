@@ -119,8 +119,8 @@ bool walk(pos_t pos) {
 	 	pos_t pos_to_verify[] = {pos_t(i, j+1), pos_t(i,j-1), pos_t(i+1,j), pos_t(i-1,j)};
 		for (int index = 0; index < sizeof(pos_to_verify)/sizeof(*pos_to_verify); index ++) {
 
-			if(!(pos_to_verify[index].i > 0 and pos_to_verify[index].i < num_rows and
-				pos_to_verify[index].j > 0 and pos_to_verify[index].j < num_cols))
+			if(!(pos_to_verify[index].i >= 0 and pos_to_verify[index].i < num_rows and
+				pos_to_verify[index].j >= 0 and pos_to_verify[index].j < num_cols))
 				continue;
 
 			char c_to_verify = maze[pos_to_verify[index].i][pos_to_verify[index].j];
