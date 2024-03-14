@@ -46,6 +46,10 @@ pos_t load_maze(const char* file_name) {
 	pos_t initial_pos;
 	// Abre o arquivo para leitura (fopen)
 	FILE* file = fopen(file_name, "r");
+	if(!file) {
+		printf("arquivo nao encontrado\n");
+		exit(1);
+	}
 
 	// Le o numero de linhas e colunas (fscanf) 
 	// e salva em num_rows e num_cols
@@ -89,6 +93,10 @@ bool walk(pos_t pos) {
 	
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
 	do {
+
+		if(!valid_positions.empty())
+			valid_positions.pop();
+
 		int i = pos.i, j = pos.j;
 		// Marcar a posição atual com o símbolo '.'
 		maze[i][j] = '.';
@@ -110,10 +118,8 @@ bool walk(pos_t pos) {
 		 	Caso alguma das posiçÕes validas seja igual a 's', retornar verdadeiro
 	 	*/
 
-	 	pos_t pos_to_verify[] = {pos_t(i, j+i), pos_t(i,j-1), pos_t(i+1,j), pos_t(i-1,j)};
+	 	pos_t pos_to_verify[] = {pos_t(i, j+1), pos_t(i,j-1), pos_t(i+1,j), pos_t(i-1,j)};
 		for (int index = 0; index < sizeof(pos_to_verify)/sizeof(*pos_to_verify); index ++) {
-
-			printf("%d %d", pos_to_verify[index].i, pos_to_verify[index].j);
 
 			if(!(pos_to_verify[index].i > 0 and pos_to_verify[index].i < num_rows and
 				pos_to_verify[index].j > 0 and pos_to_verify[index].j < num_cols))
@@ -129,7 +135,6 @@ bool walk(pos_t pos) {
 
 
 		pos = valid_positions.top();
-		valid_positions.pop();
 
 		// Verifica se a pilha de posições nao esta vazia 
 		// Caso não esteja, pegar o primeiro valor de  valid_positions, remove-lo e chamar a funçao walk com esse valor
@@ -149,6 +154,7 @@ int main(int argc, char* argv[]) {
 	bool exit_found = walk(initial_pos);
 	
 	// Tratar o retorno (imprimir mensagem)
+	printf("saida %sencontrada\n", exit_found ? "" : "nao ");
 	
 	return 0;
 }
