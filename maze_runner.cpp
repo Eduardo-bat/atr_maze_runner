@@ -92,14 +92,12 @@ void print_maze() {
 bool walk(pos_t pos) {
 	
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
+	bool posicoes_validas;
 	do {
-
-		if(!valid_positions.empty())
-			valid_positions.pop();
 
 		int i = pos.i, j = pos.j;
 		// Marcar a posição atual com o símbolo '.'
-		maze[i][j] = '.';
+		maze[i][j] = 'o';
 		
 		// Limpa a tela
 		system("clear");
@@ -133,17 +131,18 @@ bool walk(pos_t pos) {
 				valid_positions.push(pos_to_verify[index]);
 		}
 
+		maze[i][j] = '.';
 
+			
+
+		posicoes_validas = !valid_positions.empty();
+
+		if(posicoes_validas) {
 		pos = valid_positions.top();
+		valid_positions.pop();
+		}
 
-		// Verifica se a pilha de posições nao esta vazia 
-		// Caso não esteja, pegar o primeiro valor de  valid_positions, remove-lo e chamar a funçao walk com esse valor
-		// Caso contrario, retornar falso
-			// if (!valid_positions.empty()) {
-			// 	pos_t next_position = valid_positions.top();
-			// 	valid_positions.pop();
-			// }
-	} while(!valid_positions.empty());
+	} while(posicoes_validas);
 	return false;
 }
 
