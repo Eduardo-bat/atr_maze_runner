@@ -3,6 +3,7 @@
 
 #include <iostream> 
 #include <stdlib.h>
+#include <thread>
 
 // Matriz de char representnado o labirinto
 char** maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
@@ -73,6 +74,9 @@ pos_t load_maze(const char* file_name) {
 			}
 		}
 	}
+
+	fclose(file);
+
 	return initial_pos;
 }
 
@@ -95,7 +99,7 @@ bool walk(pos_t pos) {
 	int i = pos.i, j = pos.j;
 	// Marcar a posição atual com o símbolo '.'
 	maze[i][j] = 'o';
-	
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	// Limpa a tela
 	system("clear");
 
@@ -133,8 +137,11 @@ bool walk(pos_t pos) {
 	if(valid_positions.empty())
 		return false;
 	
-	pos = valid_positions.top();
-	valid_positions.pop();
+	do {
+		pos = valid_positions.top();
+		valid_positions.pop();
+	} while(maze[pos.i][pos.j] != 'x');
+
 	return walk(pos);
 }
 
