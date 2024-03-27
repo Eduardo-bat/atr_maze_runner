@@ -30,6 +30,7 @@ int num_rows;
 int num_cols;
 
 atomic<bool> resolvido;
+atomic<int> thread_counter;
 
 vector<vector<char>> maze;
 
@@ -75,14 +76,15 @@ void print_maze() {
 
 void walk(pos_t pos) {
 	stack<pos_t> my_valid_pos;
-	vector<thread> my_threads;
+
+	thread_counter ++;
 
 	while(!resolvido) {
 		int i = pos.get_i(), j = pos.get_j();
 
 		maze[i][j] = 'o';
 		
-		this_thread::sleep_for(chrono::milliseconds(100));
+		this_thread::sleep_for(chrono::milliseconds(50));
 		console_mutex.lock();
 		system("clear");
 		print_maze();
@@ -99,20 +101,23 @@ void walk(pos_t pos) {
 
 			if(c_to_verify == 's') {
 				resolvido = true;
-				for(auto& t : my_threads) t.join();
+				thread_counter --;
 				return;
 			}
 			else if(c_to_verify == 'x') {
 				path_ctr ++;
 				if(path_ctr == 1) my_valid_pos.push(pos_to_verify[index]);
-				else my_threads.push_back(thread(walk, pos_to_verify[index]));
+				else {
+					thread t(walk, pos_to_verify[index]);
+					t.detach();
+				}
 			}
 		}
 
 		maze[i][j] = '.';
 
 		if(my_valid_pos.empty()) {
-			for(auto& t : my_threads) t.join();
+			thread_counter --;
 			return;
 		}
 
@@ -121,7 +126,7 @@ void walk(pos_t pos) {
 			my_valid_pos.pop();
 		} while(maze[pos.get_i()][pos.get_j()] != 'x');
 	}
-	for(auto& t : my_threads) t.join();
+	thread_counter --;
 }
 
 int main(int argc, char* argv[]) {
@@ -134,8 +139,9 @@ int main(int argc, char* argv[]) {
 	else
 		initial_pos = load_maze(argv[1]);
 
-	thread main_thread(walk, initial_pos);
-	main_thread.join();
+	walk(initial_pos);
+
+	while(thread_counter);
 	
 	cout << "saida " << (resolvido ? "" : "nao ") << "encontrada" << endl;
 
