@@ -1,29 +1,40 @@
 #include <stdio.h>
-#include <stack>
-
-#include <iostream> 
 #include <stdlib.h>
+#include <stack>
+#include <iostream> 
 #include <thread>
+#include <vector>
+#include <fstream>
+
+using namespace std;
 
 // Matriz de char representnado o labirinto
-char** maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
+vector<vector<char>> maze; // Voce também pode representar o labirinto como um vetor de vetores de char (vector<vector<char>>)
 
 // Numero de linhas e colunas do labirinto
 int num_rows;
 int num_cols;
 
 // Representação de uma posição
-struct pos_t {
+class pos_t {
+private:
 	int i;
 	int j;
 
+public:
 	pos_t(int i, int j) : i(i), j(j) {};
 	pos_t() {};
+
+	int get_i() {return i;}
+	int get_j() {return j;}
+
+	void set_i(int i) {this->i = i;}
+	void set_j(int j) {this->j = j;}
 };
 
 // Estrutura de dados contendo as próximas
 // posicões a serem exploradas no labirinto
-std::stack<pos_t> valid_positions;
+stack<pos_t> valid_positions;
 /* Inserir elemento: 
 
 	 pos_t pos;
@@ -46,36 +57,30 @@ std::stack<pos_t> valid_positions;
 pos_t load_maze(const char* file_name) {
 	pos_t initial_pos;
 	// Abre o arquivo para leitura (fopen)
-	FILE* file = fopen(file_name, "r");
-	if(!file) {
-		printf("arquivo nao encontrado\n");
+	ifstream file(file_name);
+	if(!file.is_open()) {
+		cout << "arquivo nao encontrado" << endl;
 		exit(1);
 	}
 
 	// Le o numero de linhas e colunas (fscanf) 
 	// e salva em num_rows e num_cols
-	fscanf(file, "%d %d", &num_rows, &num_cols);
-
-	// Aloca a matriz maze (malloc)
-	maze = new char*[num_rows];
-	for (int i = 0; i < num_rows; ++i)
-		// Aloca cada linha da matriz
-		maze[i] = new char[num_cols];
-
+	file >> num_rows >> num_cols;
+	maze.resize(num_rows, std::vector<char>(num_cols));
 	
-	for (int i = 0; i < num_rows; ++i) {
-		fscanf(file, "%s", maze[i]);
-		for (int j = 0; j < num_cols; ++j) {
+	for(int i = 0; i < num_rows; ++i) {
+		for(int j = 0; j < num_cols; ++j) {
 			// Le o valor da linha i+1,j do arquivo e salva na posição maze[i][j]
 			// Se o valor for 'e' salvar o valor em initial_pos
+			file >> maze[i][j];
 			if(maze[i][j] == 'e') {
-				initial_pos.i = i;
-				initial_pos.j = j;
+				initial_pos.set_i(i);
+				initial_pos.set_j(j);
 			}
 		}
 	}
 
-	fclose(file);
+	file.close();
 
 	return initial_pos;
 }
@@ -84,9 +89,9 @@ pos_t load_maze(const char* file_name) {
 void print_maze() {
 	for (int i = 0; i < num_rows; ++i) {
 		for (int j = 0; j < num_cols; ++j) {
-			printf("%c", maze[i][j]);
+			cout << maze[i][j];
 		}
-		printf("\n");
+		cout << endl;
 	}
 }
 
@@ -96,10 +101,10 @@ void print_maze() {
 bool walk(pos_t pos) {
 	
 	// Repita até que a saída seja encontrada ou não existam mais posições não exploradas
-	int i = pos.i, j = pos.j;
+	int i = pos.get_i(), j = pos.get_j();
 	// Marcar a posição atual com o símbolo '.'
 	maze[i][j] = 'o';
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	this_thread::sleep_for(chrono::milliseconds(100));
 	// Limpa a tela
 	system("clear");
 
@@ -120,11 +125,11 @@ bool walk(pos_t pos) {
 	pos_t pos_to_verify[] = {pos_t(i, j+1), pos_t(i,j-1), pos_t(i+1,j), pos_t(i-1,j)};
 	for (int index = 0; index < sizeof(pos_to_verify)/sizeof(*pos_to_verify); index ++) {
 
-		if(!(pos_to_verify[index].i >= 0 and pos_to_verify[index].i < num_rows and
-			pos_to_verify[index].j >= 0 and pos_to_verify[index].j < num_cols))
+		if(!(pos_to_verify[index].get_i() >= 0 and pos_to_verify[index].get_i() < num_rows and
+			pos_to_verify[index].get_j() >= 0 and pos_to_verify[index].get_j() < num_cols))
 			continue;
 
-		char c_to_verify = maze[pos_to_verify[index].i][pos_to_verify[index].j];
+		char c_to_verify = maze[pos_to_verify[index].get_i()][pos_to_verify[index].get_j()];
 
 		if(c_to_verify == 's')
 			return true;
@@ -140,7 +145,7 @@ bool walk(pos_t pos) {
 	do {
 		pos = valid_positions.top();
 		valid_positions.pop();
-	} while(maze[pos.i][pos.j] != 'x');
+	} while(maze[pos.get_i()][pos.get_j()] != 'x');
 
 	return walk(pos);
 }
@@ -156,7 +161,7 @@ int main(int argc, char* argv[]) {
 	bool exit_found = walk(initial_pos);
 	
 	// Tratar o retorno (imprimir mensagem)
-	printf("saida %sencontrada\n", exit_found ? "" : "nao ");
+	cout << "saida " << (exit_found ? "" : "nao ") << "encontrada" << endl;
 	
 	return 0;
 }
