@@ -141,8 +141,9 @@ int main(int argc, char* argv[]) {
 
 	walk(initial_pos);
 
-	while(thread_counter);
+	while(!resolvido and thread_counter);
 	
+	console_mutex.lock();
 	cout << "saida " << (resolvido ? "" : "nao ") << "encontrada" << endl;
 
 	return 0;
