@@ -34,8 +34,6 @@ atomic<int> thread_counter;
 
 vector<vector<char>> maze;
 
-mutex console_mutex;
-
 pos_t load_maze(const char* file_name) {
 	pos_t initial_pos;
 
@@ -83,12 +81,6 @@ void walk(pos_t pos) {
 		int i = pos.get_i(), j = pos.get_j();
 
 		maze[i][j] = 'o';
-		
-		this_thread::sleep_for(chrono::milliseconds(50));
-		console_mutex.lock();
-		system("clear");
-		print_maze();
-		console_mutex.unlock();
 
 		pos_t pos_to_verify[] = {pos_t(i, j+1), pos_t(i,j-1), pos_t(i+1,j), pos_t(i-1,j)};
 		int path_ctr = 0;
@@ -116,14 +108,16 @@ void walk(pos_t pos) {
 
 		maze[i][j] = '.';
 
-		if(my_valid_pos.empty()) {
-			thread_counter --;
-			return;
-		}
-
 		do {
+
+			if(my_valid_pos.empty()) {
+				thread_counter --;
+				return;
+			}
+
 			pos = my_valid_pos.top();
 			my_valid_pos.pop();
+			
 		} while(maze[pos.get_i()][pos.get_j()] != 'x');
 	}
 	thread_counter --;
@@ -139,11 +133,14 @@ int main(int argc, char* argv[]) {
 	else
 		initial_pos = load_maze(argv[1]);
 
-	walk(initial_pos);
+	thread t(walk, initial_pos);
+	t.join();
 
-	while(!resolvido and thread_counter);
+	while(!resolvido and thread_counter) {
+		system("clear");
+		print_maze();
+	}
 	
-	console_mutex.lock();
 	cout << "saida " << (resolvido ? "" : "nao ") << "encontrada" << endl;
 
 	return 0;
